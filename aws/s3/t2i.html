@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>T2I Server</title>
+<link rel='stylesheet' href='style.css'>
+<link rel='icon' type='image/x-icon' href='favicon.ico'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'></meta>
+<style>
+	button, input, textarea {
+		background-color: #2d2b38;
+		border: none;
+		color: #ffffff;
+		font-family: "CMSroman", serif
+	}
+	button {
+		cursor: pointer;
+	}
+	button:active {
+		background-color: #ff0000
+	}
+	button:disabled {
+		background-color: #2b2b2b;
+		color: #cccccc;
+		cursor: not-allowed
+	}
+	td {
+		padding-right: 30px;
+		vertical-align: top
+	}
+	.loading, .loading * {
+		cursor: wait
+	}
+</style>
+</head>
+
+<body>
+<div class='margin'>
+<a href='index.html'>&#8592;</a>
+<p id='title'>Text To Image Server</p>
+
+<br>
+<p>Here is a free service for bulk AI image generation. I find best results from this technology are found by giving a prompt about a hundred tries and then sorting through them to find a few good ones. This takes a long time though, so I'm offering this service for people to be able to do that.</p>
+<p>The way it works is, you enter a prompt, the quantity to produce, and your email. Then the job will run and you get a download link sent to your email when it's done. For now the images are 1024x1024 only and take 30 seconds to generate per image, or about 1 hour to generate 120 images.</p>
+<p>The image generation itself runs on my own on-premise hardware. The model is Stability AI's <a href='https://huggingface.co/stabilityai/stable-diffusion-3.5-large'>stable-diffusion-3.5-large</a> and may be used for non-commercial or commercial purposes.</p>
+
+<br>
+<br>
+<form name='form'>
+	<table colspan='2'>
+		<tr>
+			<td>Prompt</td>
+			<td><textarea id='prompt' rows='10' cols='70' minlength='1' maxlength='500' placeholder="Still life made with graphite on paper Depicts a black and white television on the floor of a dark room showing white noise The white noise is detailed The back of the room is pitch dark The floor is carpeted."></textarea></td>
+		</tr>
+		<tr>
+			<td>Quantity</td>
+			<td><input id='quantity' type='number' max='1000' placeholder='100'></td>
+		</tr>
+		<tr>
+			<td>Email</td>
+			<td><input id='email' type='email' minlength='1' maxlength='50'></td>
+		</tr>
+		<tr>
+			<td><input id='agree' type='checkbox'></td>
+			<td>I have read and agree to the <a href='https://stability.ai/use-policy'>Acceptable Use Policy.</a></td>
+		</tr>
+	</table>
+</form>
+
+<br>
+<button id='submit' type='submit' disabled>Submit</button>
+
+<br><br><br><br><br><br>
+
+</div class='margin'>
+
+<script src='jquery.min.js'></script>
+<script>
+	const prompt = document.getElementById('prompt');
+	const quantity = document.getElementById('quantity');
+	const email = document.getElementById('email');
+	const agree = document.getElementById('agree');
+	const submit = document.getElementById('submit');
+
+	function checkForm() {
+	const isReady =
+		prompt.value.trim() !== '' &&
+		quantity.value.trim() !== '' &&
+		email.value.trim() !== '' &&
+		agree.checked;
+	submit.disabled = !isReady;
+	}
+
+	prompt.addEventListener('input', checkForm);
+	quantity.addEventListener('input', checkForm);
+	email.addEventListener('input', checkForm);
+	agree.addEventListener('change', checkForm);
+</script>
+<script>     
+    $(() => {
+        $('#submit').click(function(event) {
+			document.body.classList.add('loading');
+			var jstr = JSON.stringify({
+				'prompt': $('#prompt').val(),
+				'quantity': $('#quantity').val(),
+				'email': $('#email').val()
+			});
+            $.ajax({
+                type: 'POST',
+                url: 'https://0e4y1n1i95.execute-api.us-west-2.amazonaws.com/1/queue',
+				contentType: 'application/json',
+				crossDomain: true,
+				dataType: 'json',
+				data: jstr,
+                success: function(response) {
+                    alert('Job submitted.\nJobs ahead of you: ' + response.queue_length);
+					document.form.reset();
+                },
+                error: function(response) {
+                    alert('something bad happened, i don\'t know');
+					document.form.reset();
+                },
+				complete: function() {
+					document.body.classList.remove('loading');
+				}
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
